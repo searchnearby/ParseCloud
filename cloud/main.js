@@ -7,12 +7,13 @@ var layerKeyID = "f63fb1c4-e744-11e4-88df-d7e500000bc4";
 var privateKey = fs.readFileSync('cloud/layer-parse-module/keys/layer-key.js');
 layer.initialize(layerProviderID, layerKeyID, privateKey);
 
-var algoliasearch = require('cloud/algoliasearch.parse.js');
-var client = algoliasearch('3J94RUQ4HX', '657a04bfdc9d50aae9394c9714a1cfc2');
-var qLimit = 300;
-var mandrill_key = '9F87dVP1ZEAJOS5gvyYq9A';
+var mandrill_key = 'j-JppFrntOR4buDCDfYEzw';
 var Mandrill = require('mandrill');
 Mandrill.initialize(mandrill_key);
+
+var algoliasearch = require('cloud/algoliasearch.parse.js');
+var client = algoliasearch('GGTSXFR4FB', '524cad1c19baed88d70c094f452d8edd');
+var qLimit = 300;
 
 var categoryIndex = client.initIndex('categories');
 var colorIndex = client.initIndex('colors');
@@ -32,7 +33,6 @@ var profileIndex = client.initIndex('profiles');
 var merchantStaffIndex = client.initIndex('merchant_staff');
 var userProfileIndex = client.initIndex('user_profiles');
  
-
 Parse.Cloud.define("generateToken", function(request, response) {
     var userID = request.params.userID;
     var nonce = request.params.nonce;
@@ -300,7 +300,6 @@ Parse.Cloud.afterDelete("Tag", function(request) {
 });
 
 Parse.Cloud.afterSave("Inventory", function(request) {
-  console.log("afterSave for Inventory called");
   afterSaveRecord(request.object, inventoryIndex, "Inventory");	
 });
 
@@ -341,8 +340,9 @@ Parse.Cloud.afterDelete("Conversation", function(request) {
 });
 
 Parse.Cloud.afterSave("Message", function(request) {
+  	// updating an existing message
    if (request.object.existed()) {
-    afterSaveRecord(request.object, messageIndex, "Message");
+   	afterSaveRecord(request.object, messageIndex, "Message");
    }	// new message created
    else {
    	var msgLayerId = request.object.get("layer_id");
@@ -363,8 +363,7 @@ Parse.Cloud.afterSave("Message", function(request) {
 	    afterSaveRecord(request.object, messageIndex, "Message");
 	}
 	});
-  }
-
+   }
 });
 
 Parse.Cloud.afterDelete("Message", function(request) {
@@ -557,31 +556,6 @@ function reindexTable(algoliaIndexName, parseClassName) {
   });
 }
 
-Parse.Cloud.job("checkUnreadMessages", function(request, status) {
-  var currentTime = new Date();
-  var period = new Date(currentTime.getTime() - 5*60000);
-  console.log("checking unread messages from: " + period);
-  var Messages = Parse.Object.extend("Message");
-  var query = new Parse.Query(Messages);
-  query.greaterThanOrEqualTo("createdAt", period);
-  query.find({
-    success: function(results) {
-      for (var i = 0; i < results.length; i++) {
-        var recipient_dict = results[i].get("recipient_status");
-        for (var key in recipient_dict) {
-          if (recipient_dict[key] !== "read")
-            sendNotificationEmail(results[i]);
-        }
-      }
-      
-    },
-    error: function(error) {
-      console.log("Error: " + error.code + " " + error.message);
-    }
-  });
-
-});
-
 function afterSaveRecord(reqObj, index, parseClassName) {
 
   var objectToSave = reqObj.toJSON();
@@ -609,6 +583,33 @@ function afterDeleteRecord(objectID, index) {
     console.log("Parse<>Algolia object deleted");
   });
 }
+
+// Checks unread messages from the last 5 minutes every five minutes
+// Sends a mandrill notification email for all unread messages
+Parse.Cloud.job("checkUnreadMessages", function(request, status) {
+  var currentTime = new Date();
+  var period = new Date(currentTime.getTime() - 5*60000);
+  console.log("checking unread messages from: " + period);
+  var Messages = Parse.Object.extend("Message");
+  var query = new Parse.Query(Messages);
+  query.greaterThanOrEqualTo("createdAt", period);
+  query.find({
+    success: function(results) {
+      for (var i = 0; i < results.length; i++) {
+        var recipient_dict = results[i].get("recipient_status");
+        for (var key in recipient_dict) {
+          if (recipient_dict[key] !== "read")
+            sendNotificationEmail(results[i]);
+        }
+      }
+      
+    },
+    error: function(error) {
+      console.log("Error: " + error.code + " " + error.message);
+    }
+  });
+
+});
 
 function sendNotificationEmail(request) {
   console.log("sending Notification Email");
@@ -670,7 +671,7 @@ function sendNotificationEmail(request) {
             },
             url: 'https://mandrillapp.com/api/1.0/messages/send-template.json',
             body:{
-                    "key": mandrill_key,
+                  "key": mandrill_key,
                   "template_name": template,
                   "template_content": [], 
                   "message": {
@@ -739,6 +740,3 @@ function sendNotificationEmail(request) {
     
   });
 }
-
-
-

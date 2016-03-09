@@ -17,17 +17,17 @@ module.exports = {
    },
 
    layerIdentityToken: function(userID, nonce) {
-	var header =  JSON.stringify({
+  var header =  JSON.stringify({
           typ: "JWT", // Expresses a MIME Type of application/JWT
           alg: "RS256", // Expresses the type of algorithm used to sign the token, must be RS256
           cty: "layer-eit;v=1", // Express a Content Type of application/layer-eit;v=1
           kid: this.layerKeyID,
         });
 
-	var currentTimeInSeconds = Math.round(new Date() / 1000);
-    	var expirationTime = currentTimeInSeconds + 10000;
+  var currentTimeInSeconds = Math.round(new Date() / 1000);
+      var expirationTime = currentTimeInSeconds + 10000;
 
-    	var claim = JSON.stringify({
+      var claim = JSON.stringify({
           iss: this.layerProviderID, // The Layer Provider ID
           prn: userID, // User Identifiers
           iat: currentTimeInSeconds, // Time of Token Issuance
@@ -35,7 +35,7 @@ module.exports = {
           nce: nonce, //Nonce obtained from the request
         });
 
-     	var token = signer.jws.JWS.sign('RS256', header, claim, this.privateKey);
-     	return token;
+      var token = signer.jws.JWS.sign('RS256', header, claim, this.privateKey);
+      return token;
     }
 }
