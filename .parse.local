@@ -1,0 +1,10 @@
+{
+  "applications": {
+    "Nearby Staging": {
+      "applicationId": "z3m9nyZrHZsjb3F0XcCEpLTVG1LQHEt2ISX9S0GH"
+    },
+    "_default": {
+      "link": "Nearby Staging"
+    }
+  }
+}
