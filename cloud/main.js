@@ -588,7 +588,7 @@ function afterDeleteRecord(objectID, index) {
 // Sends a mandrill notification email for all unread messages
 Parse.Cloud.job("checkUnreadMessages", function(request, status) {
   var currentTime = new Date();
-  var period = new Date(currentTime.getTime() - 5*60000);
+  var period = new Date(currentTime.getTime() - 3*60000);
   console.log("checking unread messages from: " + period);
   var Messages = Parse.Object.extend("Message");
   var query = new Parse.Query(Messages);
