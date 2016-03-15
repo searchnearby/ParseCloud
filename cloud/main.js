@@ -659,8 +659,10 @@ function sendNotificationEmail(request) {
       success: function(users) {
 
         for (i = 0; i < users.length; i++) {
-            recipient_name[i] = users[i].get("name");
-            recipient_email[i] = users[i].get("email");
+            if (users[i].get("user_type") == "Merchant") {
+              recipient_name[i] = users[i].get("name");
+              recipient_email[i] = users[i].get("email");
+            }
         }
         for (j = 0; j < recipient_email.length; j++) {
           console.log("sending mandrill email -> message: " + message_content + " recipient: " + JSON.stringify(recipient_email));
